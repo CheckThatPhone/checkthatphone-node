@@ -1,5 +1,7 @@
 # checkthatphone
 
+[![npm version](https://img.shields.io/npm/v/checkthatphone)](https://www.npmjs.com/package/checkthatphone) [![CI](https://github.com/CheckThatPhone/checkthatphone-node/actions/workflows/ci.yml/badge.svg)](https://github.com/CheckThatPhone/checkthatphone-node/actions/workflows/ci.yml) [![node >= 18](https://img.shields.io/node/v/checkthatphone)](https://www.npmjs.com/package/checkthatphone)
+
 Official Node.js client for the [CheckThatPhone](https://checkthatphone.com) phone validation API. Validate US and Canadian phone numbers in real time: carrier and line type from live carrier data, portability and deliverability, GeoIP and timezone, plus optional TCPA litigator screening and a free state do-not-call scrub — one call, one credit.
 
 Zero dependencies. Node 18+. TypeScript types included.
