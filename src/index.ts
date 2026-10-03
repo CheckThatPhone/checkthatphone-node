@@ -12,8 +12,15 @@ export interface LookupOptions {
   litigatorFilter?: boolean;
   /** Landline SMS reachability (+1 credit, landlines only). Adds dipMessaging* fields. */
   landlineSmsLookup?: boolean;
-  /** State DNC & complainers scrub (free). Adds dncOtherChecked, dncStateResult,
-   *  dncComplainerResult, dncStateCovered. */
+  /** State do-not-call registry check (free; 38 states plus DC). Adds
+   *  dncStateChecked and dncStateResult; both are absent for the 12 states
+   *  with no registry data, so "absent" means not checked, never clear. */
+  dncState?: boolean;
+  /** National complainer-list check (free). Adds dncComplainerChecked and
+   *  dncComplainerResult. */
+  dncComplainer?: boolean;
+  /** @deprecated Use dncState and dncComplainer. Turns both on; the client
+   *  sends the two new flags, never the legacy one. */
   dncOther?: boolean;
 }
 
@@ -57,9 +64,18 @@ export interface LookupData {
   dipMessagingProvider?: string;
   dipMessagingRefId?: string;
   dipMessagingCountryCode?: string;
-  dncOtherChecked?: string;
+  /** "true" when the state check ran; "error" when it could not complete
+   *  (treat as unavailable, not clear). Absent for uncovered states. */
+  dncStateChecked?: string;
+  /** "STATE DNC" on a registry match, "" otherwise. Only when dncStateChecked is "true". */
   dncStateResult?: string;
+  /** "true" when the complainer check ran; "error" when it could not complete. */
+  dncComplainerChecked?: string;
+  /** "DNC COMPLAINER" on a match, "" otherwise. Only when dncComplainerChecked is "true". */
   dncComplainerResult?: string;
+  /** Legacy: "true" when either DNC check ran. */
+  dncOtherChecked?: string;
+  /** @deprecated Same answer as dncStateChecked. */
   dncStateCovered?: string;
   [key: string]: unknown;
 }
@@ -126,7 +142,8 @@ export class CheckThatPhone {
     if (options.ip) body.ip = options.ip;
     if (options.litigatorFilter) body.litigatorFilter = true;
     if (options.landlineSmsLookup) body.landlineSmsLookup = true;
-    if (options.dncOther) body.dncOther = true;
+    if (options.dncState || options.dncOther) body.dncState = true;
+    if (options.dncComplainer || options.dncOther) body.dncComplainer = true;
 
     const res = await fetch(`${this.baseUrl}/v1/lookup`, {
       method: 'POST',
@@ -157,6 +174,6 @@ export class CheckThatPhone {
   }
 }
 
-export const VERSION = '0.1.0';
+export const VERSION = '0.2.0';
 
 export default CheckThatPhone;
