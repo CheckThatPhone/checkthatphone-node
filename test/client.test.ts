@@ -17,7 +17,7 @@ describe('CheckThatPhone.lookup', () => {
       data: { subscriber: '8182925409', nanpType: 'mobile', litigator: 'false' },
     });
     const client = new CheckThatPhone('ctp_live_test');
-    const res = await client.lookup('(818) 292-5409', { litigatorFilter: true, dncOther: true });
+    const res = await client.lookup('(818) 292-5409', { litigatorFilter: true, dncState: true, dncComplainer: true });
 
     expect(res.success).toBe(true);
     expect(res.creditsUsed).toBe(2);
@@ -26,8 +26,22 @@ describe('CheckThatPhone.lookup', () => {
     const [url, init] = fn.mock.calls[0] as [string, RequestInit];
     expect(url).toBe('https://api.checkthatphone.com/v1/lookup');
     const sent = JSON.parse(String(init.body));
-    expect(sent).toEqual({ phone: '(818) 292-5409', litigatorFilter: true, dncOther: true });
+    expect(sent).toEqual({ phone: '(818) 292-5409', litigatorFilter: true, dncState: true, dncComplainer: true });
     expect((init.headers as Record<string, string>).authorization).toBe('Bearer ctp_live_test');
+  });
+
+  it('translates the deprecated dncOther flag into dncState + dncComplainer on the wire', async () => {
+    const fn = mockFetchOnce(200, { success: true, credits_used: 1, data: {} });
+    await new CheckThatPhone('k').lookup('8182925409', { dncOther: true });
+    const sent = JSON.parse(String((fn.mock.calls[0] as [string, RequestInit])[1].body));
+    expect(sent).toEqual({ phone: '8182925409', dncState: true, dncComplainer: true });
+  });
+
+  it('sends only the DNC check that was asked for', async () => {
+    const fn = mockFetchOnce(200, { success: true, credits_used: 1, data: {} });
+    await new CheckThatPhone('k').lookup('8182925409', { dncComplainer: true });
+    const sent = JSON.parse(String((fn.mock.calls[0] as [string, RequestInit])[1].body));
+    expect(sent).toEqual({ phone: '8182925409', dncComplainer: true });
   });
 
   it('throws a typed error with status and detail on 4xx', async () => {

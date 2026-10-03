@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/checkthatphone)](https://www.npmjs.com/package/checkthatphone) [![CI](https://github.com/CheckThatPhone/checkthatphone-node/actions/workflows/ci.yml/badge.svg)](https://github.com/CheckThatPhone/checkthatphone-node/actions/workflows/ci.yml) [![node >= 18](https://img.shields.io/node/v/checkthatphone)](https://www.npmjs.com/package/checkthatphone)
 
-Official Node.js client for the [CheckThatPhone](https://checkthatphone.com) phone validation API. Validate US and Canadian phone numbers in real time: carrier and line type from live carrier data, portability and deliverability, GeoIP and timezone, plus optional TCPA litigator screening and a free state do-not-call scrub — one call, one credit.
+Official Node.js client for the [CheckThatPhone](https://checkthatphone.com) phone validation API. Validate US and Canadian phone numbers in real time: carrier and line type from live carrier data, portability and deliverability, GeoIP and timezone, plus optional TCPA litigator screening and free state do-not-call and complainer scrubs — one call, one credit.
 
 Zero dependencies. Node 18+. TypeScript types included.
 
@@ -41,16 +41,21 @@ if (result.data.litigator === 'true') {
 }
 ```
 
-## State DNC scrub (free)
+## State DNC and complainer scrub (free)
 
-Screen state do-not-call registries (40 states) and a national complainer list at no extra credit:
+Screen state do-not-call registries (38 states plus DC) and a national complainer list at no extra credit. Each check is its own flag:
 
 ```js
-const result = await client.lookup('8182925409', { dncOther: true });
-result.data.dncStateResult;      // "STATE DNC" or ""
-result.data.dncComplainerResult; // "DNC COMPLAINER" or ""
-result.data.dncStateCovered;     // "false" = state not in the data; don't read "" as clear
+const result = await client.lookup('8182925409', { dncState: true, dncComplainer: true });
+result.data.dncStateChecked;     // "true" when the state check ran; absent for the 12 states with no registry data
+result.data.dncStateResult;      // "STATE DNC" on a match, "" otherwise (only when dncStateChecked is "true")
+result.data.dncComplainerChecked; // "true" when the complainer check ran
+result.data.dncComplainerResult; // "DNC COMPLAINER" on a match, "" otherwise
 ```
+
+Read `dncStateChecked` before `dncStateResult`: a number in an uncovered state comes back with neither field, which means not checked, not clear. `"error"` means the check could not complete; treat it as unavailable.
+
+`dncOther: true` still works as a shorthand for both checks, but it is deprecated.
 
 ## Landline SMS reachability
 
