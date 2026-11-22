@@ -20,7 +20,7 @@ import CheckThatPhone from 'checkthatphone';
 const client = new CheckThatPhone(process.env.CHECKTHATPHONE_API_KEY);
 
 const result = await client.lookup('8182925409');
-console.log(result.data.nanpType);      // "mobile"
+console.log(result.data.dipCarrierType); // "mobile"
 console.log(result.data.dipCarrier);    // "AT&T"
 console.log(result.data.deliverable);   // "true"
 console.log(result.creditsUsed);        // 1
